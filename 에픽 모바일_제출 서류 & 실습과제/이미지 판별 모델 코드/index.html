@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.1/css/all.css" integrity="sha384-vp86vTRFVJgpjF9jiIGPEEqYqlDwgyBgEF109VFjmqGmIY/Y4HV4d3Gp2irVfcrp" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery.min.js" type="text/javascript"></script>
+    <title>Img Scanning</title>
+</head>
+<body>
+    <div id="title">Teachable Machine Image Model</div>
+    <button type="button" onclick="predict()">Predict</button>
+    <div class="box">
+        <div class="column1">
+            <div class="image-upload-wrap">
+                <input class="file-upload-input" type='file' onchange="readURL(this);" accept="image/*" />
+                <div class="drag-text">
+                    <h3>Upload your Image</h3>
+                </div>
+            </div>
+            <i class="fas fa-arrow-circle-down"></i>
+            <div class="output-box">
+                <h3>Output</h3>
+                <div id="bar-1" class="bar-main-container azure">
+                    <div class="wrap">
+                      <div class="bar-percentage" data-percentage="46"></div>
+                      <div class="bar-container">
+                        <div class="bar"></div>
+                      </div>
+                    </div>
+                </div>
+                <div id="bar-2" class="bar-main-container emerald">
+                    <div class="wrap">
+                      <div class="bar-percentage" data-percentage="94"></div>
+                      <div class="bar-container">
+                        <div class="bar"></div>
+                      </div>
+                    </div>
+                  </div>
+            </div>
+        </div>
+       
+        <div class="column2">
+            <div class="image-upload-wrap">
+                <input class="file-upload-input" type='file' onchange="readURL(this);" accept="image/*" />
+                <div class="drag-text">
+                    <h3>Upload your Image</h3>
+                </div>
+            </div>
+            <i class="fas fa-arrow-circle-down"></i>
+            <div class="output-box">
+                <h3>Output</h3>
+                <div id="bar-1" class="bar-main-container azure">
+                    <div class="wrap">
+                      <div class="bar-percentage" data-percentage="46"></div>
+                      <div class="bar-container">
+                        <div class="bar"></div>
+                      </div>
+                    </div>
+                </div>
+                <div id="bar-2" class="bar-main-container emerald">
+                    <div class="wrap">
+                      <div class="bar-percentage" data-percentage="94"></div>
+                      <div class="bar-container">
+                        <div class="bar"></div>
+                      </div>
+                    </div>
+                  </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="label-container"></div>
+
+    <script src="percentage.js"/>
+    <script src="./parse.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+    <script type="text/javascript">
+        // More API functions here:
+        // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
+
+        // the link to your model provided by Teachable Machine export panel
+        const URL = "./my_model/";
+
+        let model, labelContainer, maxPredictions;
+
+        // Load the image model and setup the webcam
+        async function init() {
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+            model = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
+            labelContainer = document.getElementById("label-container");
+			for (let i = 0; i < maxPredictions; i++) {
+				labelContainer.appendChild(document.createElement("div"));
+			}
+        }
+
+        async function predict() {
+            const image = document.getElementById("face-image");
+            const prediction = await model.predict(image, false);
+            if(prediction[0].className == 'existBaby' && prediction[0].probability.toFixed(2) > 0.5) {
+                labelContainer.childNodes[0].innerHTML = "Exist Baby"
+            } else if(prediction[1].className == 'noBaby' && prediction[1].probability.toFixed(2) < 0.5) {
+                labelContainer.childNodes[0].innerHTML = "No Baby"
+            } else {
+                labelContainer.childNodes[0].innerHTML = "Emm..."
+            }
+
+            // for (let i = 0; i < maxPredictions; i++) {
+            //    const classPrediction =
+            //       prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+            //   labelContainer.childNodes[i].innerHTML = classPrediction;
+            // }
+        }
+
+        
+        const imageUploadWrap = document.querySelectorAll('.image-upload-wrap');
+        const fileUploadImage = document.querySelectorAll('.file-upload-image');
+        const fileUploadContent = document.querySelectorAll('.file-upload-content');
+        const imageTitle = document.querySelectorAll('.image-title');
+        const fileUploadInput = document.querySelectorAll('.file-upload-input');
+
+        function readURL(input) {
+			if (input.files && input.files[0]) {
+				var reader = new FileReader();
+				reader.onload = function(e) {
+					imageUploadWrap.hide();
+					fileUploadImage.attr('src', e.target.result);
+					fileUploadContent.show();
+					imageTitle.html(input.files[0].name);
+				};
+				reader.readAsDataURL(input.files[0]);
+			} else {
+				removeUpload();
+			}
+		}
+
+		function removeUpload() {
+			fileUploadInput.replaceWith(fileUploadInput.clone());
+			fileUploadContent.hide();
+			imageUploadWrap.show();
+		}
+		imageUploadWrap.bind('dragover', function() {
+			imageUploadWrap.addClass('image-dropping');
+		});
+		imageUploadWrap.bind('dragleave', function() {
+			imageUploadWrap.removeClass('image-dropping');
+		});
+
+
+        async function loop() {
+            webcam.update(); // update the webcam frame
+            await predict();
+            window.requestAnimationFrame(loop);
+        }
+
+        init();
+    </script>
+</body>
+</html>
