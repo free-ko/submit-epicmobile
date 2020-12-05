@@ -7,6 +7,7 @@ import time
 import threading
 
 def crawling() :
+    # 기본 페이지에 변수를 설정합니다.
     base_url = 'https://www.coupang.com/np/search?q={}&page={}'
     keyword = input("검색할 키워드 : ")
     headers = {
@@ -19,11 +20,16 @@ def crawling() :
     if res.status_code == 200:
         soup = BeautifulSoup(res.text)
         print(soup)
+
+        # 마지막 페이지를 지정합니다.
         last_page = soup.select_one('a.btn-last').text.strip()
         print(last_page)
 
 
+    # 에러를 확인 하기 위해 error_cnt를 작성합니다.
     error_cnt = 0
+
+    # 마지막 페이지까지 for문을 통해 크롤링을 작동합니다.
     for page in range(1, int(last_page)+1):
         url = base_url.format(keyword, page)
         res = requests.get(url, headers=headers)
@@ -33,15 +39,17 @@ def crawling() :
             for item in item_list:
                 try:
                     link = item.select_one('img.search-product-wrap-img').get('src')
-                    link = link.replace('//','')
-                    if '.gif' in link:
+                    link = link.replace('//','')    # 가져온 url 중 불필요한 부분과 파일을 제거 합니다.
+                    if '.gif' in link:              
                         continue
                     result_list.append([link])
                 except:
                     error_cnt += 1
 
 
-
+    # 크롤링 한 결과를 csv파일로 저장 합니다.
+    # 현재 날짜를 기입하도록 설정 합니다.
+    # pandas를 통해 2차원 파일로 저장합니다.
     curr = datetime.now().strftime('%Y-%m-%d')
     filename = '쿠팡조회결과_{}_{}.csv'.format(keyword,curr)
     df = pd.DataFrame(result_list, columns=['link'])
