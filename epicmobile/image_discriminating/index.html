@@ -6,15 +6,15 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.1/css/all.css" integrity="sha384-vp86vTRFVJgpjF9jiIGPEEqYqlDwgyBgEF109VFjmqGmIY/Y4HV4d3Gp2irVfcrp" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery.min.js" type="text/javascript"></script>
-    <title>Img Scanning</title>
+    <title>Distinguish Image</title>
 </head>
 <body>
-    <div id="title">Teachable Machine Image Model</div>
+    <div id="title">Distinguish Image</div>
     <button type="button" onclick="predict()">Predict</button>
     <div class="box">
-        <div class="column1">
+        <div class="column">
             <div class="image-upload-wrap">
-                <input class="file-upload-input" type='file' onchange="readURL(this);" accept="image/*" />
+                <input class="file-upload-input" type='file' accept="image/*" />
                 <div class="drag-text">
                     <h3>Upload your Image</h3>
                 </div>
@@ -43,38 +43,8 @@
             </div>
         </div>
        
-        <div class="column2">
-            <div class="image-upload-wrap">
-                <input class="file-upload-input" type='file' onchange="readURL(this);" accept="image/*" />
-                <div class="drag-text">
-                    <h3>Upload your Image</h3>
-                </div>
-            </div>
-            <i class="fas fa-arrow-circle-down"></i>
-            <div class="output-box">
-                <h3>Output</h3>
-                <h4>ExsitBaby</h4>
-                <div id="bar-1" class="bar-main-container azure">
-                    <div class="wrap">
-                      <div class="bar-percentage" data-percentage="46"></div>
-                      <div class="bar-container">
-                        <div class="bar"></div>
-                      </div>
-                    </div>
-                </div>
-                <h4>noBaby</h4>
-                <div id="bar-2" class="bar-main-container emerald">
-                    <div class="wrap">
-                      <div class="bar-percentage" data-percentage="94"></div>
-                      <div class="bar-container">
-                        <div class="bar"></div>
-                      </div>
-                    </div>
-                  </div>
-            </div>
-        </div>
     </div>
-    
+
     <div id="label-container"></div>
 
     <script src="percentage.js"/>
@@ -98,64 +68,69 @@
 			}
         }
 
+        (function() {
+            init()
+        }());
+
         async function predict() {
             const image = document.getElementById("face-image");
-            const prediction = await model.predict(image, false);
+            const prediction = await model.predict(image,false);
+            console.log(prediction)
 
             // 이미지의 인식 기준을 0.5로 잡아 그 이상이면 Exist Baby를 나타 날 수 있도록 지정했습니다.
             if(prediction[0].className == 'existBaby' && prediction[0].probability.toFixed(2) > 0.5) {
                 labelContainer.childNodes[0].innerHTML = "Exist Baby"
               
-            // 이미지의 인식 기준을 0.5로 잡아 그 미만이면  NoBaby를 나타 날 수 있도록 지정했습니다.    
-            } else if(prediction[1].className == 'noBaby' && prediction[1].probability.toFixed(2) < 0.5) {
+            // 이미지의 인식 기준을 0.5로 잡아 그 이상이면  NoBaby를 나타 날 수 있도록 지정했습니다.    
+            } else if(prediction[1].className == 'noBaby' && prediction[1].probability.toFixed(2) > 0.5) {
                 labelContainer.childNodes[0].innerHTML = "No Baby"
             } else {
                 labelContainer.childNodes[0].innerHTML = "Emm..."
             }
         }
 
+        // 이미지를 업로드 합니다.
+        const imageUploadWrap = document.querySelector('.image-upload-wrap');
+        const fileUploadInput = document.querySelector('.file-upload-input');
+        const column = document.querySelector('.column');
 
-        const imageUploadWrap = document.querySelectorAll('.image-upload-wrap');
-        const fileUploadImage = document.querySelectorAll('.file-upload-image');
-        const fileUploadContent = document.querySelectorAll('.file-upload-content');
-        const imageTitle = document.querySelectorAll('.image-title');
-        const fileUploadInput = document.querySelectorAll('.file-upload-input');
+        imageUploadWrap.addEventListener('change',function (e) {
+            const get_file = e.target.files;
+     
+            const image = document.createElement('img');
+            image.id = "face-image";
+     
+            /* FileReader 객체 생성 */
+            const reader = new FileReader();
+     
+            /* reader 시작시 함수 구현 */
+            reader.onload = (function (aImg) {
+                console.log(1);
+     
+                return function (e) {
+                    console.log(3);
+                    /* base64 인코딩 된 스트링 데이터 */
+                    aImg.src = e.target.result
+                }
+            })(image)
+     
+            if(get_file){
+                /* 
+                    get_file[0] 을 읽어서 read 행위가 종료되면 loadend 이벤트가 트리거 되고 
+                    onload 에 설정했던 return 으로 넘어간다.
+                    이와 함게 base64 인코딩 된 스트링 데이터가 result 속성에 담겨진다.
+                */
+                reader.readAsDataURL(get_file[0]);
+                console.log(2);
+            }
+            imageUploadWrap.style.display = "none";
+            column.insertBefore(image, column.firstChild);
+            image.style.width = "350px";
+            image.style.height = "430px";
+            image.style.marginBottom = "2rem";
+        })
 
-        function readURL(input) {
-			if (input.files && input.files[0]) {
-				var reader = new FileReader();
-				reader.onload = function(e) {
-					imageUploadWrap.hide();
-					fileUploadImage.attr('src', e.target.result);
-					fileUploadContent.show();
-					imageTitle.html(input.files[0].name);
-				};
-				reader.readAsDataURL(input.files[0]);
-			} else {
-				removeUpload();
-			}
-		}
 
-		function removeUpload() {
-			fileUploadInput.replaceWith(fileUploadInput.clone());
-			fileUploadContent.hide();
-			imageUploadWrap.show();
-		}
-		imageUploadWrap.bind('dragover', function() {
-			imageUploadWrap.addClass('image-dropping');
-		});
-		imageUploadWrap.bind('dragleave', function() {
-			imageUploadWrap.removeClass('image-dropping');
-		});
-
-
-        async function loop() {
-            webcam.update(); // update the webcam frame
-            await predict();
-            window.requestAnimationFrame(loop);
-        }
-
-        init();
     </script>
 </body>
 </html>

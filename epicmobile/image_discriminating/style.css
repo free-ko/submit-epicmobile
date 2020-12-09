@@ -37,8 +37,7 @@ a { text-decoration: none; color: #EC5C93; }
 	margin-top: 2rem;
 }
 
-.column1,
-.column2 {
+.column {
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
