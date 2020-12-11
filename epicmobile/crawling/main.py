@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from urllib import parse
 from datetime import datetime
 import time
+import threading
 
 def crawling() :
     base_url = 'https://www.coupang.com/np/categories/417869/?page={}'
@@ -44,4 +45,9 @@ def crawling() :
     df.to_csv(filename, index=False, encoding='utf-8')
     print('fail to save :', error_cnt)
 
+    # 테스트로 3초 마다 함수 실행
+    # 하루는 86400초
+    threading.Timer(5, crawling).start()
+
 crawling()
+
