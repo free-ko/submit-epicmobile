@@ -47,7 +47,7 @@ def crawling() :
 
     # 테스트로 3초 마다 함수 실행
     # 하루는 86400초
-    threading.Timer(5, crawling).start()
+    # threading.Timer(5, crawling).start()
 
 crawling()
 
